@@ -15,6 +15,8 @@ class App(tk.Frame):
         self.master = master
         master.geometry("570x370+100+100")
         self.create_widgets()
+        master.bind("<Control-KeyPress-o>", partial(open_file, self))
+        master.bind("<Control-KeyPress-s>", partial(save_all, self))
 
     # Widgets
     def create_widgets(self):
@@ -29,7 +31,7 @@ class App(tk.Frame):
 
         self.top_menu.add_cascade(label="File", menu=self.file_menu)
 
-        self.file_menu.add_command(label="Open Files", command=partial(open_files, self))
+        self.file_menu.add_command(label="Open File", command=partial(open_file, self))
         self.file_menu.add_separator()
         self.file_menu.add_command(label="Save all", command=partial(save_all, self))
         self.file_menu.add_separator()
@@ -144,39 +146,43 @@ class App(tk.Frame):
         self.right_canvas_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
 #Functions
-def open_files(root):
+def open_file(root, event=None):
     file_type = [("All Files", "*"), ("BMP", "*.bmp"), ("TIFF", "*.tiff"), ("PNG", "*.png"), ("JPEG","*.jpg",)]
     directory = os.path.abspath(expanduser("~"))
-    root.read_file_name = filedialog.askopenfilename(filetypes=file_type, initialdir=directory)
-    if len(root.read_file_name) != 0:
+    read_file_name = filedialog.askopenfilename(filetypes=file_type, initialdir=directory)
+    if read_file_name:
+        root.read_file_name = read_file_name
         root.left_img = MyIterator([Image.open(root.read_file_name)])
         root.left_canvas_frame.set_image(root.left_img.get(0))
         root.right_canvas_frame.close()
         root.status_txt.set("Open image file.")
         root.apply_id = root.apply.bind("<Button-1>", partial(apply_func, root))
+        root.apply2_id = root.master.bind('<Return>', partial(apply_func, root))
 
 def save(root):
     pass
 
-def save_all(root):
-    directory = os.path.abspath(expanduser("~"))
-    dirname = filedialog.askdirectory(initialdir = directory)
-    basename = os.path.basename(root.read_file_name)
-    mark_name = dirname + "/" + basename + "_mark.jpg"
-    BW_name = dirname + "/" + basename + "_BW.jpg"
+def save_all(root, event=None):
     try:
         left = root.left_canvas_frame.get_image()
         right = root.right_canvas_frame.get_image()
-    except ddsdsds:
+    except AttributeError as e:
         pass
     else:
-        left.save(mark_name)
-        right.save(BW_name)
+        directory = os.path.abspath(expanduser("~"))
+        dirname = filedialog.askdirectory(initialdir = directory)
+        if dirname:
+            basename = os.path.basename(root.read_file_name)
+            mark_name = dirname + "/" + basename + "_mark.jpg"
+            BW_name = dirname + "/" + basename + "_BW.jpg"
+            left.save(mark_name)
+            right.save(BW_name)
 
 def close(root):
     root.left_canvas_frame.close()
     root.right_canvas_frame.close()
     root.apply.unbind("<Button-3>", root.apply_id)
+    root.master.unbind("<Return>", root.apply2_id)
 
 def apply_func(root, event):
     try:
