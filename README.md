@@ -26,4 +26,4 @@ Save by "File" tab > "Save all" or <Ctrl + S>.
 # Note
 You can use gui version for Windows/Ubuntu without python.
 
-See Release.
+See Release tag.
